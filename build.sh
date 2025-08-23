@@ -21,6 +21,9 @@ emcmake cmake .. -DCMAKE_BUILD_TYPE=Release
 # Build the project
 emmake make
 
+# Copy index.html to build/web directory
+cp ../index.html web/
+
 echo "Build complete! Check the build/web directory for the generated files."
 echo "To run the game, serve the files from build/web with a web server."
 echo ""
