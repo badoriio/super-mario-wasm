@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Super Mario WebAssembly - GitHub Pages</title>
+    <meta name="description" content="A Super Mario-style platformer game built with C++, SDL2, and WebAssembly">
+    <meta name="keywords" content="WebAssembly, Super Mario, Game, C++, SDL2, Emscripten">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #87CEEB, #E0F6FF);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            color: #333;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            color: #666;
+            margin: 10px 0 0 0;
+        }
+        
+        .game-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        .play-button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            margin: 20px 0;
+        }
+        
+        .play-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(238, 90, 36, 0.3);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .feature {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .feature h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        
+        .controls {
+            background: #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .controls h3 {
+            margin-top: 0;
+            color: #333;
+            text-align: center;
+        }
+        
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .control-item {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .github-link {
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            margin: 10px;
+            transition: background 0.2s;
+        }
+        
+        .github-link:hover {
+            background: #555;
+        }
+        
+        .footer {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            margin-top: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .game-container {
+                padding: 20px;
+                margin: 0 10px 20px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🍄 Super Mario WebAssembly</h1>
+        <p>A platformer game built with C++, SDL2, and WebAssembly</p>
+    </div>
+    
+    <div class="game-container">
+        <div style="text-align: center;">
+            <a href="super_mario.html" class="play-button">🎮 Play Game</a>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>🎯 Physics-Based Gameplay</h3>
+                <p>Mario character with realistic gravity, jumping, and movement mechanics</p>
+            </div>
+            <div class="feature">
+                <h3>🏗️ Platform Levels</h3>
+                <p>Multiple floating platforms with collision detection and navigation challenges</p>
+            </div>
+            <div class="feature">
+                <h3>⚡ WebAssembly Powered</h3>
+                <p>C++ performance compiled to WebAssembly for smooth 60 FPS gameplay</p>
+            </div>
+            <div class="feature">
+                <h3>📱 Web-Ready</h3>
+                <p>Runs in any modern web browser without plugins or downloads</p>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <h3>🎮 Game Controls</h3>
+            <div class="control-grid">
+                <div class="control-item">
+                    <strong>Move Left/Right</strong><br>
+                    ← → Arrow Keys or A/D
+                </div>
+                <div class="control-item">
+                    <strong>Jump</strong><br>
+                    Spacebar, ↑ Up Arrow, or W
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="https://github.com/yourusername/super-mario-wasm" class="github-link">
+                📂 View Source on GitHub
+            </a>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Built with ❤️ using C++17, SDL2, CMake, and Emscripten</p>
+        <p>Deployed with GitHub Pages and GitHub Actions</p>
+    </div>
+</body>
+</html>
