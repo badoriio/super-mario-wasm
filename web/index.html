@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Super Mario WebAssembly</title>
+    <meta name="description" content="A production-quality Mario-style platformer built with C++ and WebAssembly">
+    <meta name="keywords" content="mario, platformer, webassembly, c++, game, emscripten">
+    <meta name="author" content="Super Mario WebAssembly Team">
+    
+    <!-- Open Graph meta tags for social sharing -->
+    <meta property="og:title" content="Super Mario WebAssembly">
+    <meta property="og:description" content="Production-quality Mario-style platformer built with C++ and WebAssembly">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="./screenshot.png">
+    
+    <!-- PWA manifest -->
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <meta name="theme-color" content="#2a5298">
+    
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            color: white;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 100%;
+            max-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .game-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .game-header h1 {
+            margin: 0;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .game-header p {
+            margin: 5px 0;
+            opacity: 0.8;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+        }
+        
+        canvas.emscripten {
+            border: 3px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            background: #000;
+            display: block;
+            max-width: 95vw;
+            max-height: 60vh;
+            width: auto;
+            height: auto;
+        }
+        
+        .loading-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: clamp(14px, 3vw, 18px);
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+            backdrop-filter: blur(5px);
+        }
+        
+        .loading-bar {
+            width: min(300px, 80vw);
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 1px solid #555;
+        }
+        
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        }
+        
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .controls-info {
+            text-align: center;
+            margin-top: 20px;
+            font-size: clamp(12px, 2.5vw, 14px);
+            opacity: 0.8;
+            max-width: 600px;
+        }
+        
+        .controls-info h3 {
+            margin: 10px 0 5px 0;
+            font-size: clamp(14px, 3vw, 16px);
+        }
+        
+        .controls-info p {
+            margin: 3px 0;
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .audio-notice {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            z-index: 2000;
+            display: none;
+            border: 2px solid #4CAF50;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        
+        .audio-notice h3 {
+            margin: 0 0 15px 0;
+            color: #4CAF50;
+        }
+        
+        .audio-notice button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .audio-notice button:hover {
+            background: linear-gradient(45deg, #45a049, #4CAF50);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+        
+        .fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .fullscreen-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.05);
+        }
+        
+        .github-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .github-link:hover {
+            background: rgba(0,0,0,0.9);
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .github-link {
+                position: relative;
+                top: auto;
+                left: auto;
+                margin-bottom: 20px;
+                display: inline-block;
+            }
+            
+            canvas.emscripten {
+                max-width: 95vw;
+                max-height: 50vh;
+            }
+            
+            .loading-bar { 
+                width: 80vw;
+                max-width: 300px;
+            }
+        }
+        
+        @media (orientation: landscape) and (max-height: 500px) {
+            .game-header { margin-bottom: 10px; }
+            .controls-info { margin-top: 10px; }
+            canvas.emscripten {
+                max-height: 70vh;
+            }
+        }
+        
+        .error-message {
+            background: rgba(255,0,0,0.1);
+            border: 1px solid rgba(255,0,0,0.3);
+            color: #ffcccc;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <a href="https://github.com/badoriio/super-mario-wasm" class="github-link" target="_blank" rel="noopener">
+        ⭐ View on GitHub
+    </a>
+    
+    <div class="game-container">
+        <div class="game-header">
+            <h1>🍄 Super Mario WebAssembly</h1>
+            <p>Production-Quality C++ Platformer built with Emscripten</p>
+        </div>
+        
+        <div class="loading-container">
+            <canvas class="emscripten" id="canvas" width="1024" height="576" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+            
+            <div class="loading-overlay" id="loading">
+                <div class="loading-spinner">⚙️</div>
+                <div>Loading Game Assets...</div>
+                <div class="loading-bar">
+                    <div class="loading-progress" id="progress"></div>
+                </div>
+                <div id="status">Initializing...</div>
+            </div>
+            
+            <button class="fullscreen-btn" onclick="requestFullscreen()" title="Enter Fullscreen">
+                ⛶
+            </button>
+        </div>
+        
+        <div class="error-message" id="errorMessage">
+            <h3>⚠️ Loading Error</h3>
+            <p id="errorText"></p>
+            <button onclick="location.reload()">Reload Page</button>
+        </div>
+        
+        <div class="controls-info">
+            <h3>🎮 Game Controls</h3>
+            <div class="controls-grid">
+                <div>
+                    <strong>Keyboard:</strong><br>
+                    A/D - Move<br>
+                    Space - Jump<br>
+                    Shift - Run<br>
+                    Esc - Pause
+                </div>
+                <div>
+                    <strong>Gamepad:</strong><br>
+                    D-Pad/Stick - Move<br>
+                    A Button - Jump<br>
+                    X Button - Run<br>
+                    Start - Pause
+                </div>
+            </div>
+            <p><small>🔊 Click anywhere to enable audio • ⛶ Fullscreen for best experience</small></p>
+        </div>
+    </div>
+    
+    <div class="audio-notice" id="audioNotice">
+        <h3>🔊 Audio Context</h3>
+        <p>Web browsers require user interaction to enable audio.<br>Click the button below to start with sound!</p>
+        <button onclick="enableAudio()">🎵 Enable Audio & Continue</button>
+    </div>
+    
+    <script src="./loader.js"></script>
+    <script async src="./game.js"></script>
+</body>
+</html>

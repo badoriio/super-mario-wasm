@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Super Mario WebAssembly</title>
+    <meta name="description" content="A production-quality Mario-style platformer built with C++ and WebAssembly">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="manifest" href="manifest.json">
+    
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 100%;
+            max-height: 100vh;
+        }
+        
+        .game-header {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .game-header h1 {
+            margin: 0;
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .game-header p {
+            margin: 5px 0;
+            opacity: 0.8;
+        }
+        
+        canvas.emscripten {
+            border: 3px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            background: #000;
+            display: block;
+        }
+        
+        .loading-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 18px;
+            z-index: 1000;
+            transition: opacity 0.3s ease;
+        }
+        
+        .loading-bar {
+            width: 300px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        
+        .controls-info {
+            color: white;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .controls-info h3 {
+            margin: 10px 0 5px 0;
+        }
+        
+        .controls-info p {
+            margin: 3px 0;
+        }
+        
+        .audio-notice {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            z-index: 2000;
+            display: none;
+        }
+        
+        .audio-notice button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        
+        .audio-notice button:hover {
+            background: #45a049;
+        }
+        
+        .fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .fullscreen-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .game-header h1 { font-size: 1.5em; }
+            .loading-bar { width: 200px; }
+            canvas.emscripten {
+                max-width: 95vw;
+                max-height: 60vh;
+            }
+        }
+        
+        @media (orientation: landscape) and (max-height: 500px) {
+            .game-header { margin-bottom: 10px; }
+            .game-header h1 { font-size: 1.2em; }
+            .controls-info { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>🍄 Super Mario WebAssembly</h1>
+            <p>Production-Quality C++ Platformer</p>
+        </div>
+        
+        <div class="loading-container">
+            <canvas class="emscripten" id="canvas" width="1024" height="576" oncontextmenu="event.preventDefault()" tabindex="0"></canvas>
+            
+            <div class="loading-overlay" id="loading">
+                <div>🎮 Loading Game...</div>
+                <div class="loading-bar">
+                    <div class="loading-progress" id="progress"></div>
+                </div>
+                <div id="status">Downloading...</div>
+            </div>
+            
+            <button class="fullscreen-btn" onclick="requestFullscreen()">⛶ Fullscreen</button>
+        </div>
+        
+        <div class="controls-info">
+            <h3>🎮 Controls</h3>
+            <p><strong>Keyboard:</strong> A/D - Move, Space - Jump, Shift - Run, Esc - Pause</p>
+            <p><strong>Gamepad:</strong> D-Pad/Stick - Move, A - Jump, X - Run, Start - Pause</p>
+        </div>
+    </div>
+    
+    <div class="audio-notice" id="audioNotice">
+        <h3>🔊 Audio Ready</h3>
+        <p>Click to enable game audio</p>
+        <button onclick="enableAudio()">Enable Audio</button>
+    </div>
+    
+    <script type='text/javascript'>
+        let audioEnabled = false;
+        let gameLoaded = false;
+        
+        // Handle device pixel ratio for sharp rendering
+        function setupCanvas() {
+            const canvas = document.getElementById('canvas');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            
+            canvas.width = 1024 * dpr;
+            canvas.height = 576 * dpr;
+            canvas.style.width = Math.min(rect.width, window.innerWidth * 0.95) + 'px';
+            canvas.style.height = (canvas.style.width.replace('px', '') * (576/1024)) + 'px';
+            
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+        }
+        
+        // Fullscreen functionality
+        function requestFullscreen() {
+            const canvas = document.getElementById('canvas');
+            if (canvas.requestFullscreen) {
+                canvas.requestFullscreen();
+            } else if (canvas.webkitRequestFullscreen) {
+                canvas.webkitRequestFullscreen();
+            } else if (canvas.mozRequestFullScreen) {
+                canvas.mozRequestFullScreen();
+            } else if (canvas.msRequestFullscreen) {
+                canvas.msRequestFullscreen();
+            }
+        }
+        
+        // Audio context management
+        function enableAudio() {
+            if (!audioEnabled) {
+                if (typeof AudioContext !== 'undefined') {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    audioContext.resume();
+                } else if (typeof webkitAudioContext !== 'undefined') {
+                    const audioContext = new webkitAudioContext();
+                    audioContext.resume();
+                }
+                audioEnabled = true;
+            }
+            document.getElementById('audioNotice').style.display = 'none';
+        }
+        
+        // Show audio notice when game loads
+        function showAudioNotice() {
+            if (!audioEnabled) {
+                setTimeout(() => {
+                    document.getElementById('audioNotice').style.display = 'block';
+                }, 1000);
+            }
+        }
+        
+        // Module configuration
+        var Module = {
+            preRun: [],
+            postRun: [showAudioNotice],
+            print: function(text) {
+                console.log(text);
+            },
+            printErr: function(text) {
+                console.error(text);
+            },
+            canvas: (function() {
+                var canvas = document.getElementById('canvas');
+                canvas.addEventListener("webglcontextlost", function(e) {
+                    alert('WebGL context lost. Please reload the page.');
+                    e.preventDefault();
+                }, false);
+                return canvas;
+            })(),
+            
+            setStatus: function(text) {
+                const status = document.getElementById('status');
+                const loading = document.getElementById('loading');
+                
+                if (text) {
+                    status.textContent = text;
+                } else {
+                    // Game loaded
+                    loading.style.opacity = '0';
+                    setTimeout(() => {
+                        loading.style.display = 'none';
+                        gameLoaded = true;
+                    }, 300);
+                }
+            },
+            
+            totalDependencies: 0,
+            monitorRunDependencies: function(left) {
+                this.totalDependencies = Math.max(this.totalDependencies, left);
+                const progress = document.getElementById('progress');
+                
+                if (left) {
+                    const percent = Math.round(((this.totalDependencies - left) / this.totalDependencies) * 100);
+                    progress.style.width = percent + '%';
+                    Module.setStatus('Loading: ' + percent + '%');
+                } else {
+                    progress.style.width = '100%';
+                    Module.setStatus('');
+                }
+            },
+            
+            locateFile: function(path, prefix) {
+                // Handle relative paths for GitHub Pages deployment
+                if (path.endsWith('.wasm') || path.endsWith('.js')) {
+                    return prefix + path;
+                }
+                return prefix + path;
+            }
+        };
+        
+        Module.setStatus('Downloading...');
+        
+        // Setup canvas on load and resize
+        setupCanvas();
+        window.addEventListener('resize', setupCanvas);
+        
+        // Focus canvas for keyboard input
+        function focusCanvas() {
+            const canvas = document.getElementById('canvas');
+            canvas.focus();
+            console.log('Canvas focused for keyboard input');
+        }
+        
+        // Auto-focus canvas when game loads
+        setTimeout(focusCanvas, 1000);
+        
+        // Focus canvas when clicked
+        document.getElementById('canvas').addEventListener('click', focusCanvas);
+        
+        // Debug keyboard events
+        document.addEventListener('keydown', function(e) {
+            console.log('Key pressed:', e.key, 'Code:', e.code);
+        });
+        
+        // Prevent context menu on canvas
+        document.getElementById('canvas').addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // Handle fullscreen changes
+        document.addEventListener('fullscreenchange', function() {
+            if (document.fullscreenElement) {
+                document.getElementById('canvas').style.width = '100vw';
+                document.getElementById('canvas').style.height = '100vh';
+            } else {
+                setupCanvas();
+            }
+        });
+        
+        // Gamepad support detection
+        window.addEventListener("gamepadconnected", function(e) {
+            console.log("Gamepad connected:", e.gamepad.id);
+        });
+        
+        window.addEventListener("gamepaddisconnected", function(e) {
+            console.log("Gamepad disconnected:", e.gamepad.id);
+        });
+        
+        // Handle visibility changes for pause/resume
+        document.addEventListener('visibilitychange', function() {
+            if (gameLoaded && typeof Module !== 'undefined' && Module._pauseGame) {
+                if (document.hidden) {
+                    Module._pauseGame();
+                } else {
+                    enableAudio();
+                }
+            }
+        });
+    </script>
+    
+    {{{ SCRIPT }}}
+</body>
+</html>
