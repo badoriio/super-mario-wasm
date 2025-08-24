@@ -1,45 +1,168 @@
-name: Deploy to GitHub Pages
+name: Build and Deploy to GitHub Pages
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
     
     steps:
-    - name: Checkout
+    - name: Checkout repository
       uses: actions/checkout@v4
-      
-    - name: Setup Emscripten
-      uses: mymindstorm/setup-emsdk@v14
       with:
-        version: 3.1.45
-        
-    - name: Verify Emscripten
-      run: emcc --version
-      
-    - name: Build WebAssembly Game
+        fetch-depth: 0
+    
+    - name: Setup Node.js (for build tools)
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Cache Emscripten SDK
+      id: cache-emsdk
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/emsdk
+          emsdk
+        key: ${{ runner.os }}-emsdk-${{ hashFiles('.github/workflows/deploy.yml') }}
+        restore-keys: |
+          ${{ runner.os }}-emsdk-
+    
+    - name: Setup Emscripten SDK
+      if: steps.cache-emsdk.outputs.cache-hit != 'true'
       run: |
-        chmod +x build.sh
-        ./build.sh
-        
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      if: github.ref == 'refs/heads/main'
+        git clone https://github.com/emscripten-core/emsdk.git
+        cd emsdk
+        ./emsdk install latest
+        ./emsdk activate latest
+    
+    - name: Verify Emscripten installation
+      run: |
+        cd emsdk
+        source ./emsdk_env.sh
+        emcc --version
+        em++ --version
+    
+    - name: Cache CMake build
+      uses: actions/cache@v4
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./build/web
-        cname: badori.io
+        path: |
+          build-web
+        key: ${{ runner.os }}-cmake-${{ hashFiles('CMakeLists.txt', 'src/**/*') }}
+        restore-keys: |
+          ${{ runner.os }}-cmake-
+    
+    - name: Configure CMake for Web
+      run: |
+        cd emsdk
+        source ./emsdk_env.sh
+        cd ..
+        cmake -S . -B build-web \
+          -DCMAKE_TOOLCHAIN_FILE=$PWD/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_CXX_FLAGS="-O3 -DNDEBUG" \
+          -DEMSCRIPTEN=1
+    
+    - name: Build Web Version
+      run: |
+        cd emsdk
+        source ./emsdk_env.sh
+        cd ..
+        cmake --build build-web --config Release -j$(nproc)
+    
+    - name: Verify build outputs
+      run: |
+        ls -la build-web/
+        echo "=== Checking for required files ==="
+        test -f build-web/game.html && echo "✓ game.html found" || echo "✗ game.html missing"
+        test -f build-web/game.js && echo "✓ game.js found" || echo "✗ game.js missing"  
+        test -f build-web/game.wasm && echo "✓ game.wasm found" || echo "✗ game.wasm missing"
+        test -f build-web/game.data && echo "✓ game.data found" || echo "✗ game.data missing"
+        echo "=== File sizes ==="
+        du -h build-web/game.* 2>/dev/null || true
+    
+    - name: Prepare distribution directory
+      run: |
+        mkdir -p dist
+        
+        # Copy web build outputs
+        cp build-web/game.html dist/ 2>/dev/null || echo "No game.html found"
+        cp build-web/game.js dist/ 2>/dev/null || echo "No game.js found"
+        cp build-web/game.wasm dist/ 2>/dev/null || echo "No game.wasm found"
+        cp build-web/game.data dist/ 2>/dev/null || echo "No game.data found"
+        
+        # Copy web assets
+        cp web/index.html dist/
+        cp web/loader.js dist/
+        cp web/manifest.json dist/
+        
+        # Copy assets directory
+        cp -r assets dist/
+        
+        # Create .nojekyll to prevent Jekyll processing
+        touch dist/.nojekyll
+        
+        # Generate cache headers file
+        cat > dist/_headers << 'EOF'
+        /game.wasm
+          Cache-Control: public, max-age=31536000, immutable
+        /game.js  
+          Cache-Control: public, max-age=31536000, immutable
+        /game.data
+          Cache-Control: public, max-age=31536000, immutable
+        /*.png
+          Cache-Control: public, max-age=86400
+        /*.ogg
+          Cache-Control: public, max-age=86400
+        /*.mp3
+          Cache-Control: public, max-age=86400
+        EOF
+        
+        echo "=== Distribution directory contents ==="
+        ls -la dist/
+        echo "=== Checking critical files ==="
+        test -f dist/index.html && echo "✓ index.html ready" || echo "✗ index.html missing"
+        test -f dist/game.js && echo "✓ game.js ready" || echo "✗ game.js missing"
+        test -f dist/game.wasm && echo "✓ game.wasm ready" || echo "✗ game.wasm missing"
+        test -d dist/assets && echo "✓ assets directory ready" || echo "✗ assets directory missing"
+    
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+    
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: './dist'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+      
+    - name: Output deployment URL
+      run: |
+        echo "🎮 Game deployed successfully!"
+        echo "🌐 URL: ${{ steps.deployment.outputs.page_url }}"
+        echo "🔧 Build completed in ${{ github.run_number }} workflow run"
