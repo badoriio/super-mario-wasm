@@ -1,5 +1,5 @@
 # Build directories
-build-web/
+build-web/*
 
 # CMake
 CMakeCache.txt
