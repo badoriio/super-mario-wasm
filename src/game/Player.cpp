@@ -187,15 +187,13 @@ void Player::respawn(const Vector2& position) {
     }
 }
 
-void Player::handleInput(float /* deltaTime */) {
+void Player::handleInput(float deltaTime) {
     if (!m_input || m_state == PlayerState::DEAD) return;
     
     bool moveLeft = m_input->isActionPressed(InputAction::MOVE_LEFT);
     bool moveRight = m_input->isActionPressed(InputAction::MOVE_RIGHT);
     bool jumpPressed = m_input->isActionJustPressed(InputAction::JUMP);
     // bool runPressed = m_input->isActionPressed(InputAction::RUN);
-    
-    // Remove excessive debug output
     
     // Only allow jumping when grounded and jump key is pressed
     if (jumpPressed && m_isGrounded) {
@@ -204,17 +202,18 @@ void Player::handleInput(float /* deltaTime */) {
     }
     
     if (moveLeft && !moveRight) {
-        move(-1.0f);
+        move(-1.0f, deltaTime);
         m_facing = Direction::LEFT;
     } else if (moveRight && !moveLeft) {
-        move(1.0f);
+        move(1.0f, deltaTime);
         m_facing = Direction::RIGHT;
     } else {
         stopMoving();
     }
     
+    // Variable height jump - reduce upward velocity if jump key released
     if (!m_input->isActionPressed(InputAction::JUMP) && m_body && m_body->velocity.y < 0) {
-        m_body->velocity.y *= 0.5f;
+        m_body->velocity.y *= 0.7f; // Less aggressive reduction
     }
 }
 
@@ -291,23 +290,21 @@ void Player::jump() {
     }
 }
 
-void Player::move(float direction) {
+void Player::move(float direction, float deltaTime) {
     if (m_body) {
         float acceleration = Constants::PLAYER_ACCELERATION;
-        float oldVelX = m_body->velocity.x;
-        m_body->velocity.x += direction * acceleration * 0.016f;
+        m_body->velocity.x += direction * acceleration * deltaTime;
         
         float maxSpeed = Constants::PLAYER_MAX_SPEED;
         if (m_body->velocity.x > maxSpeed) m_body->velocity.x = maxSpeed;
         if (m_body->velocity.x < -maxSpeed) m_body->velocity.x = -maxSpeed;
-        
-        // Movement debug removed
     }
 }
 
 void Player::stopMoving() {
     if (m_body && m_isGrounded) {
-        m_body->velocity.x *= Constants::GROUND_FRICTION;
+        // Apply stronger deceleration when actively stopping
+        m_body->velocity.x *= 0.85f; // More aggressive stopping than passive friction
     }
 }
 

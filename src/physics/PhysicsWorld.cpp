@@ -93,9 +93,9 @@ void PhysicsWorld::integrateVelocity(PhysicsBody* body, float deltaTime) {
         body->velocity.y = Constants::MAX_FALL_SPEED;
     }
     
-    if (body->isGrounded) {
-        body->velocity.x *= Constants::GROUND_FRICTION;
-    } else {
+    // Let individual entities handle their own friction/resistance
+    // Only apply air resistance when not grounded to allow some air control
+    if (!body->isGrounded) {
         body->velocity.x *= Constants::AIR_RESISTANCE;
     }
     

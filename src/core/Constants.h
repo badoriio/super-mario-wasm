@@ -14,14 +14,14 @@ namespace Constants {
     // Physics constants
     constexpr float GRAVITY = 980.0f;
     constexpr float MAX_FALL_SPEED = 500.0f;
-    constexpr float GROUND_FRICTION = 0.85f;
-    constexpr float AIR_RESISTANCE = 0.98f;
+    constexpr float GROUND_FRICTION = 0.92f;  // Reduced friction for better movement
+    constexpr float AIR_RESISTANCE = 0.99f;   // Slight air resistance
     
     // Player movement constants
-    constexpr float PLAYER_MOVE_SPEED = 200.0f;
-    constexpr float PLAYER_MAX_SPEED = 250.0f;
-    constexpr float PLAYER_JUMP_SPEED = 400.0f;
-    constexpr float PLAYER_ACCELERATION = 800.0f;
+    constexpr float PLAYER_MOVE_SPEED = 300.0f;      // Increased base speed
+    constexpr float PLAYER_MAX_SPEED = 350.0f;       // Higher max speed
+    constexpr float PLAYER_JUMP_SPEED = 450.0f;      // Slightly higher jump
+    constexpr float PLAYER_ACCELERATION = 1200.0f;   // Faster acceleration for responsive feel
     constexpr float PLAYER_DECELERATION = 1200.0f;
     constexpr float PLAYER_SIZE = 32.0f;
     

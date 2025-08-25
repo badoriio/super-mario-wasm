@@ -57,7 +57,7 @@ private:
     void checkCollisions();
     
     void jump();
-    void move(float direction);
+    void move(float direction, float deltaTime);
     void stopMoving();
     
     void setupAnimations();
