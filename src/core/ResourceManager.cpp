@@ -5,6 +5,9 @@
 ResourceManager* ResourceManager::s_instance = nullptr;
 
 ResourceManager::ResourceManager() {
+    if (s_instance != nullptr) {
+        std::cerr << "Warning: Multiple ResourceManager instances created!" << std::endl;
+    }
     s_instance = this;
 }
 

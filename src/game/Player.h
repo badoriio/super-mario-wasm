@@ -12,7 +12,7 @@
 #include <string>
 
 class PhysicsWorld;
-class PhysicsBody;
+struct PhysicsBody;
 class InputManager;
 class Renderer;
 class AudioManager;

@@ -44,6 +44,9 @@ void Player::initialize(PhysicsWorld* physics, InputManager* input, AudioManager
         if (m_body) {
             m_body->mass = 1.0f;
             m_body->friction = Constants::GROUND_FRICTION;
+            // Initialize with zero velocity to prevent initial falling
+            m_body->velocity = Vector2(0, 0);
+            m_body->acceleration = Vector2(0, 0);
         }
     }
     
@@ -194,9 +197,10 @@ void Player::handleInput(float /* deltaTime */) {
     
     // Remove excessive debug output
     
-    if (jumpPressed) {
-        m_jumpBufferTimer = Constants::JUMP_BUFFER_TIME;
-        printf("=== JUMP KEY PRESSED! Buffer set to %.3f ===\n", m_jumpBufferTimer);
+    // Only allow jumping when grounded and jump key is pressed
+    if (jumpPressed && m_isGrounded) {
+        printf("=== JUMPING! Player is grounded ===\n");
+        jump();
     }
     
     if (moveLeft && !moveRight) {
@@ -207,14 +211,6 @@ void Player::handleInput(float /* deltaTime */) {
         m_facing = Direction::RIGHT;
     } else {
         stopMoving();
-    }
-    
-    if ((m_isGrounded || m_coyoteTimer > 0.0f) && m_jumpBufferTimer > 0.0f) {
-        printf("=== JUMPING! grounded=%d, coyote=%.3f, buffer=%.3f ===\n", 
-               m_isGrounded, m_coyoteTimer, m_jumpBufferTimer);
-        jump();
-        m_jumpBufferTimer = 0.0f;
-        m_coyoteTimer = 0.0f;
     }
     
     if (!m_input->isActionPressed(InputAction::JUMP) && m_body && m_body->velocity.y < 0) {

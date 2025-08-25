@@ -3,6 +3,7 @@
 #include "../game/Level.h"
 #include "../core/Constants.h"
 #include <algorithm>
+#include <iostream>
 
 PhysicsWorld::PhysicsWorld()
     : m_gravity(0, Constants::GRAVITY)
@@ -19,9 +20,9 @@ void PhysicsWorld::update(float deltaTime) {
     
     for (auto& body : m_bodies) {
         if (!body->isStatic) {
-            integrateVelocity(body.get(), deltaTime);
-            checkLevelCollisions(body.get());
-            integratePosition(body.get(), deltaTime);
+            checkLevelCollisions(body.get());      // Check ground FIRST
+            integrateVelocity(body.get(), deltaTime);  // Then apply forces based on ground state
+            integratePosition(body.get(), deltaTime);  // Finally apply velocity to position
         }
     }
     
@@ -29,6 +30,14 @@ void PhysicsWorld::update(float deltaTime) {
 }
 
 PhysicsBody* PhysicsWorld::createBody(EntityID id, const Vector2& position, const Vector2& size) {
+    // Check for existing body with same ID
+    for (const auto& existingBody : m_bodies) {
+        if (existingBody->id == id) {
+            std::cerr << "Warning: Attempting to create physics body with duplicate ID " << id << std::endl;
+            return nullptr;
+        }
+    }
+    
     auto body = std::make_unique<PhysicsBody>(id, position, size);
     PhysicsBody* bodyPtr = body.get();
     m_bodies.push_back(std::move(body));
@@ -68,7 +77,15 @@ bool PhysicsWorld::raycast(const Vector2& start, const Vector2& end, EntityID ig
 }
 
 void PhysicsWorld::integrateVelocity(PhysicsBody* body, float deltaTime) {
-    body->acceleration += m_gravity;
+    // Only apply gravity if not grounded
+    if (!body->isGrounded) {
+        body->acceleration += m_gravity;
+    } else {
+        // When grounded, stop vertical velocity to prevent bouncing
+        if (body->velocity.y > 0) {
+            body->velocity.y = 0;
+        }
+    }
     
     body->velocity += body->acceleration * deltaTime;
     
@@ -157,44 +174,25 @@ void PhysicsWorld::resolveCollisions() {
 void PhysicsWorld::checkLevelCollisions(PhysicsBody* body) {
     if (!m_level) return;
     
+    // Simple ground detection - check if there's solid ground directly below the player
     body->isGrounded = false;
     
-    Rectangle nextBounds = body->bounds;
-    nextBounds.x = body->position.x;
-    nextBounds.y = body->position.y + body->velocity.y * 0.016f;
+    Rectangle groundCheckBounds = body->bounds;
+    groundCheckBounds.y = body->position.y + body->bounds.h; // Check at bottom edge of player
+    groundCheckBounds.h = 2.0f; // Check 2 pixels down
     
-    if (m_level->checkCollision(nextBounds)) {
-        if (body->velocity.y > 0) {
-            body->isGrounded = true;
-            body->velocity.y = 0;
-            
-            int tileY = static_cast<int>((body->position.y + body->bounds.h) / Constants::TILE_SIZE);
-            body->position.y = tileY * Constants::TILE_SIZE - body->bounds.h;
-        } else if (body->velocity.y < 0) {
-            body->velocity.y = 0;
-            
-            int tileY = static_cast<int>(body->position.y / Constants::TILE_SIZE);
-            body->position.y = (tileY + 1) * Constants::TILE_SIZE;
+    if (m_level->checkCollision(groundCheckBounds)) {
+        body->isGrounded = true;
+        // If we're grounded, make sure we're not sinking into the ground
+        int tileY = static_cast<int>((body->position.y + body->bounds.h) / Constants::TILE_SIZE);
+        float groundY = tileY * Constants::TILE_SIZE - body->bounds.h;
+        if (body->position.y > groundY) {
+            body->position.y = groundY;
+            body->updateBounds();
         }
-    }
-    
-    // Check horizontal movement collision
-    nextBounds.x = body->position.x + body->velocity.x * 0.016f;
-    nextBounds.y = body->position.y;
-    
-    if (m_level->checkCollision(nextBounds)) {
-        // Store velocity direction before zeroing it
-        float velX = body->velocity.x;
-        printf("=== HORIZONTAL COLLISION! velX=%.1f, pos=(%.1f,%.1f) ===\n", 
-               velX, body->position.x, body->position.y);
-        body->velocity.x = 0;
-        
-        if (velX > 0) {
-            int tileX = static_cast<int>((body->position.x + body->bounds.w) / Constants::TILE_SIZE);
-            body->position.x = tileX * Constants::TILE_SIZE - body->bounds.w;
-        } else if (velX < 0) {
-            int tileX = static_cast<int>(body->position.x / Constants::TILE_SIZE);
-            body->position.x = (tileX + 1) * Constants::TILE_SIZE;
+        // Clear any downward velocity when on ground
+        if (body->velocity.y > 0) {
+            body->velocity.y = 0;
         }
     }
 }

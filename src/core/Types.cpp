@@ -7,7 +7,7 @@ float Vector2::length() const {
 
 Vector2 Vector2::normalized() const {
     float len = length();
-    if (len == 0.0f) return Vector2(0, 0);
+    if (len < 1e-6f) return Vector2(0, 0);  // Use epsilon comparison instead of exact equality
     return Vector2(x / len, y / len);
 }
 

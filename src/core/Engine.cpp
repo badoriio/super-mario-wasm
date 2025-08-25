@@ -7,22 +7,6 @@
 #include "../game/Game.h"
 #include <iostream>
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-
-static Engine* g_engine = nullptr;
-
-void emscripten_loop() {
-    static int frameCount = 0;
-    frameCount++;
-    if (frameCount == 1) {
-        printf("=== FIRST EMSCRIPTEN LOOP CALL ===\n");
-    }
-    if (g_engine && g_engine->isRunning()) {
-        g_engine->run();
-    }
-}
-#endif
 
 Engine::Engine()
     : m_running(false)
@@ -155,12 +139,6 @@ void Engine::shutdown() {
     }
     
     SDL_Quit();
-    
-#ifdef __EMSCRIPTEN__
-    if (g_engine == this) {
-        g_engine = nullptr;
-    }
-#endif
 }
 
 void Engine::handleEvents() {
