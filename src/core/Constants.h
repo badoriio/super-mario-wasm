@@ -46,7 +46,7 @@ namespace Constants {
     // Camera constants
     constexpr float CAMERA_DEADZONE_X = 200.0f;
     constexpr float CAMERA_DEADZONE_Y = 100.0f;
-    constexpr float CAMERA_FOLLOW_SPEED = 5.0f;
+    constexpr float CAMERA_FOLLOW_SPEED = 8.0f;  // Increased for more responsive following
     constexpr float CAMERA_LOOK_AHEAD = 150.0f;
     
     // Audio constants

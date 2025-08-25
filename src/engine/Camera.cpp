@@ -37,20 +37,20 @@ Camera::Camera(const Vector2& position, const Vector2& size)
 }
 
 void Camera::update(float deltaTime) {
-    // Simple camera following - center on target with discrete positioning
+    // Simple camera following - center on target with smooth interpolation
     Vector2 idealPosition = m_target;
     idealPosition.x -= m_size.x / 2;
     idealPosition.y -= m_size.y / 2;
     
-    // Use direct positioning instead of smooth interpolation to avoid seam artifacts
-    m_position = idealPosition;
+    // Smooth interpolation to ideal position
+    float smoothFactor = 1.0f - std::exp(-m_followSpeed * deltaTime);
+    m_position = m_position + (idealPosition - m_position) * smoothFactor;
     
     updateShake(deltaTime);
     clampToBounds();
     
-    // Snap to pixel-perfect positions to prevent visual seams
-    m_position.x = std::round(m_position.x);
-    m_position.y = std::round(m_position.y);
+    // Snap to pixel-perfect positions ONLY for rendering, not for interpolation calculation
+    // This maintains smooth movement while preventing seam artifacts
 }
 
 void Camera::setTarget(const Vector2& target) {
