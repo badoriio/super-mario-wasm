@@ -6,6 +6,7 @@
 #include "../core/Constants.h"
 #include "../data/LevelLoader.h"
 #include <iostream>
+#include <cmath>
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
@@ -197,10 +198,11 @@ void Level::renderTileLayer(Renderer* renderer, const std::vector<std::vector<in
         cameraBounds.y = cameraPos.y;
     }
     
-    int startX = std::max(0, static_cast<int>(cameraBounds.x / Constants::TILE_SIZE) - 1);
-    int endX = std::min(m_data.width, static_cast<int>((cameraBounds.x + cameraBounds.w) / Constants::TILE_SIZE) + 1);
-    int startY = std::max(0, static_cast<int>(cameraBounds.y / Constants::TILE_SIZE) - 1);
-    int endY = std::min(m_data.height, static_cast<int>((cameraBounds.y + cameraBounds.h) / Constants::TILE_SIZE) + 1);
+    // Use more conservative culling to prevent blinking due to floating-point precision
+    int startX = std::max(0, static_cast<int>(std::floor(cameraBounds.x / Constants::TILE_SIZE)) - 2);
+    int endX = std::min(m_data.width, static_cast<int>(std::ceil((cameraBounds.x + cameraBounds.w) / Constants::TILE_SIZE)) + 2);
+    int startY = std::max(0, static_cast<int>(std::floor(cameraBounds.y / Constants::TILE_SIZE)) - 1);
+    int endY = std::min(m_data.height, static_cast<int>(std::ceil((cameraBounds.y + cameraBounds.h) / Constants::TILE_SIZE)) + 1);
     
     for (int y = startY; y < endY; ++y) {
         for (int x = startX; x < endX; ++x) {

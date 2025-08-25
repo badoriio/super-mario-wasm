@@ -41,10 +41,10 @@ void HUD::update(float deltaTime) {
 }
 
 void HUD::render(Renderer* renderer) {
-    // Background for HUD
+    // Background for HUD - use UI rendering to stay fixed on screen
     SDL_Color hudBg = {0, 0, 0, 200};
-    renderer->drawRectangle(Rectangle(0, 0, Constants::SCREEN_WIDTH, Constants::HUD_HEIGHT), 
-                           hudBg, true, 50);
+    renderer->drawUIRectangle(Rectangle(0, 0, Constants::SCREEN_WIDTH, Constants::HUD_HEIGHT), 
+                             hudBg, true, 50);
     
     renderScore(renderer);
     renderLives(renderer);
@@ -106,10 +106,10 @@ void HUD::renderWorld(Renderer* renderer) {
 
 void HUD::renderText(Renderer* renderer, const std::string& text, const Vector2& position, SDL_Color color) {
     if (!m_fontTexture) {
-        // Fallback rendering
+        // Fallback rendering - use UI rectangle rendering to stay fixed
         for (size_t i = 0; i < text.length(); ++i) {
             Vector2 charPos(position.x + i * 12, position.y);
-            renderer->drawRectangle(Rectangle(charPos.x, charPos.y, 10, 14), color, true, 51);
+            renderer->drawUIRectangle(Rectangle(charPos.x, charPos.y, 10, 14), color, true, 51);
         }
         return;
     }
@@ -128,7 +128,8 @@ void HUD::renderText(Renderer* renderer, const std::string& text, const Vector2&
                 8, 16
             };
             
-            renderer->drawTexture(m_fontTexture, srcRect, dstRect, 0.0f, nullptr, SDL_FLIP_NONE, 51);
+            // Use UI texture rendering to stay fixed on screen
+            renderer->drawUITexture(m_fontTexture, srcRect, dstRect, 0.0f, nullptr, SDL_FLIP_NONE, 51);
         }
     }
 }

@@ -16,6 +16,11 @@ struct RenderCommand {
     SDL_Point center;
     SDL_RendererFlip flip;
     int layer;
+    bool isUI; // Flag to indicate this should not be affected by camera transformation
+    
+    RenderCommand() : texture(nullptr), srcRect{0,0,0,0}, dstRect{0,0,0,0}, 
+                     rotation(0.0f), center{0,0}, flip(SDL_FLIP_NONE), 
+                     layer(0), isUI(false) {}
 };
 
 class Camera;
@@ -41,6 +46,12 @@ public:
     void drawRectangle(const Rectangle& rect, SDL_Color color, bool filled = true, int layer = 0);
     void drawLine(const Vector2& start, const Vector2& end, SDL_Color color, int layer = 0);
     void drawCircle(const Vector2& center, float radius, SDL_Color color, bool filled = true, int layer = 0);
+    
+    // UI-specific rendering methods (not affected by camera transformation)
+    void drawUITexture(SDL_Texture* texture, const SDL_Rect& srcRect, const SDL_Rect& dstRect, 
+                      float rotation = 0.0f, const SDL_Point* center = nullptr, 
+                      SDL_RendererFlip flip = SDL_FLIP_NONE, int layer = 0);
+    void drawUIRectangle(const Rectangle& rect, SDL_Color color, bool filled = true, int layer = 0);
     
     void setCamera(Camera* camera) { m_camera = camera; }
     Camera* getCamera() const { return m_camera; }

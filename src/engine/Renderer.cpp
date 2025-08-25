@@ -83,6 +83,7 @@ void Renderer::drawTexture(SDL_Texture* texture, const SDL_Rect& srcRect, const 
     cmd.center = center ? *center : SDL_Point{dstRect.w/2, dstRect.h/2};
     cmd.flip = flip;
     cmd.layer = layer;
+    cmd.isUI = false; // World space rendering
     
     m_commands.push_back(cmd);
 }
@@ -161,6 +162,41 @@ void Renderer::drawCircle(const Vector2& center, float radius, SDL_Color color, 
     }
 }
 
+void Renderer::drawUITexture(SDL_Texture* texture, const SDL_Rect& srcRect, const SDL_Rect& dstRect,
+                            float rotation, const SDL_Point* center, SDL_RendererFlip flip, int layer) {
+    if (!texture) return;
+    
+    RenderCommand cmd;
+    cmd.texture = texture;
+    cmd.srcRect = srcRect;
+    cmd.dstRect = dstRect;
+    cmd.rotation = rotation;
+    cmd.center = center ? *center : SDL_Point{dstRect.w/2, dstRect.h/2};
+    cmd.flip = flip;
+    cmd.layer = layer;
+    cmd.isUI = true; // UI rendering - no camera transformation
+    
+    m_commands.push_back(cmd);
+}
+
+void Renderer::drawUIRectangle(const Rectangle& rect, SDL_Color color, bool filled, int layer) {
+    RenderCommand cmd;
+    cmd.texture = nullptr; // Rectangle rendering doesn't use texture
+    cmd.dstRect = {static_cast<int>(rect.x), static_cast<int>(rect.y), 
+                   static_cast<int>(rect.w), static_cast<int>(rect.h)};
+    cmd.layer = layer;
+    cmd.isUI = true; // UI rendering - no camera transformation
+    
+    // Store color information (we'll handle this in sortAndRender)
+    // For now, we'll render immediately since rectangles don't use the command system
+    SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, color.a);
+    if (filled) {
+        SDL_RenderFillRect(m_renderer, &cmd.dstRect);
+    } else {
+        SDL_RenderDrawRect(m_renderer, &cmd.dstRect);
+    }
+}
+
 Vector2 Renderer::screenToWorld(const Vector2& screenPos) const {
     if (!m_camera) return screenPos;
     
@@ -192,7 +228,11 @@ void Renderer::sortAndRender() {
     
     for (const auto& cmd : m_commands) {
         SDL_Rect dstRect = cmd.dstRect;
-        applyCamera(dstRect);
+        
+        // Only apply camera transformation for non-UI elements
+        if (!cmd.isUI) {
+            applyCamera(dstRect);
+        }
         
         SDL_RenderCopyEx(m_renderer, cmd.texture, &cmd.srcRect, &dstRect,
                         cmd.rotation, &cmd.center, cmd.flip);
