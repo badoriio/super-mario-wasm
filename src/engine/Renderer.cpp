@@ -3,6 +3,7 @@
 #include "../core/Constants.h"
 #include <algorithm>
 #include <iostream>
+#include <cmath>
 
 Renderer::Renderer()
     : m_renderer(nullptr)
@@ -16,6 +17,18 @@ Renderer::~Renderer() {
 }
 
 bool Renderer::initialize(SDL_Window* window) {
+    // Set texture filtering to nearest neighbor for pixel-perfect rendering
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0"); // 0 = nearest neighbor, 1 = linear
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1"); // Enable vsync to prevent tearing
+    
+    // WebGL-specific hints for better pixel rendering
+    #ifdef __EMSCRIPTEN__
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
+    SDL_SetHint("SDL_HINT_RENDER_OPENGL_SHADERS", "0");
+    // Force integer scaling and disable any sub-pixel rendering
+    SDL_SetHint(SDL_HINT_RENDER_LOGICAL_SIZE_MODE, "0"); // letterbox mode
+    #endif
+    
     // Try hardware acceleration first, fall back to software if needed
     m_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!m_renderer) {
@@ -32,7 +45,9 @@ bool Renderer::initialize(SDL_Window* window) {
     }
     
     SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
-    SDL_RenderSetLogicalSize(m_renderer, Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT);
+    
+    // Disable logical size scaling to prevent WebGL scaling artifacts
+    // SDL_RenderSetLogicalSize(m_renderer, Constants::SCREEN_WIDTH, Constants::SCREEN_HEIGHT);
     
     return true;
 }
@@ -187,7 +202,7 @@ void Renderer::sortAndRender() {
 void Renderer::applyCamera(SDL_Rect& rect) const {
     if (m_camera) {
         Vector2 cameraPos = m_camera->getPosition();
-        rect.x -= static_cast<int>(cameraPos.x);
-        rect.y -= static_cast<int>(cameraPos.y);
+        rect.x -= static_cast<int>(std::round(cameraPos.x));
+        rect.y -= static_cast<int>(std::round(cameraPos.y));
     }
 }
