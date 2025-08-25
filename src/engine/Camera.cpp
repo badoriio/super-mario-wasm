@@ -87,7 +87,7 @@ void Camera::updateShake(float deltaTime) {
 void Camera::clampToBounds() {
     if (!m_hasBounds) return;
     
-    // Only clamp vertically - allow free horizontal movement for Mario-style gameplay
-    // m_position.x = std::max(m_bounds.x, std::min(m_position.x, m_bounds.x + m_bounds.w - m_size.x));
+    // Clamp camera to level boundaries - prevent showing empty space beyond level edges
+    m_position.x = std::max(m_bounds.x, std::min(m_position.x, m_bounds.x + m_bounds.w - m_size.x));
     m_position.y = std::max(m_bounds.y, std::min(m_position.y, m_bounds.y + m_bounds.h - m_size.y));
 }

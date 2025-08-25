@@ -174,6 +174,22 @@ void PhysicsWorld::resolveCollisions() {
 void PhysicsWorld::checkLevelCollisions(PhysicsBody* body) {
     if (!m_level) return;
     
+    // Check level boundaries first
+    // Left boundary - prevent going off the left edge
+    if (body->position.x < 0) {
+        body->position.x = 0;
+        body->velocity.x = 0;
+        body->updateBounds();
+    }
+    
+    // Right boundary - prevent going beyond level width
+    float levelWidth = m_level->getWidth() * Constants::TILE_SIZE;
+    if (body->position.x + body->bounds.w > levelWidth) {
+        body->position.x = levelWidth - body->bounds.w;
+        body->velocity.x = 0;
+        body->updateBounds();
+    }
+    
     // Simple ground detection - check if there's solid ground directly below the player
     body->isGrounded = false;
     
