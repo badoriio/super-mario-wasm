@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../core/Types.h"
-#include "../game/Level.h"
+#include <mario/core/Types.h>
+#include <mario/game/Level.h>
 #include <string>
 
 class LevelLoader {

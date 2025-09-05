@@ -1,4 +1,4 @@
-#include "SpriteSheet.h"
+#include <mario/engine/SpriteSheet.h>
 #include <iostream>
 
 SpriteSheet::SpriteSheet()

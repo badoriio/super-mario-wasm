@@ -41,15 +41,16 @@ fi
 echo "🔧 Setting up Emscripten SDK..."
 
 # Setup Emscripten SDK
-if [ ! -d "emsdk" ]; then
+if [ ! -d "external/emsdk" ]; then
     echo "📥 Cloning Emscripten SDK..."
-    git clone https://github.com/emscripten-core/emsdk.git
-    cd emsdk
+    mkdir -p external
+    git clone https://github.com/emscripten-core/emsdk.git external/emsdk
+    cd external/emsdk
     echo "⬇️ Installing latest Emscripten..."
     ./emsdk install latest
     echo "⚡ Activating Emscripten..."
     ./emsdk activate latest
-    cd ..
+    cd ../..
     echo "✅ Emscripten SDK installed successfully"
 else
     echo "✅ Emscripten SDK already exists"
@@ -57,7 +58,7 @@ fi
 
 # Activate Emscripten environment
 echo "🌍 Activating Emscripten environment..."
-source emsdk/emsdk_env.sh
+source external/emsdk/emsdk_env.sh
 
 # Verify Emscripten is working
 echo "🔍 Verifying Emscripten installation..."
@@ -70,7 +71,7 @@ echo "🏗️ Configuring build..."
 
 # Configure CMake for web build
 cmake -S . -B build-web \
-    -DCMAKE_TOOLCHAIN_FILE=$PWD/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
+    -DCMAKE_TOOLCHAIN_FILE=$PWD/external/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_CXX_FLAGS="-O3 -DNDEBUG" \
     -DEMSCRIPTEN=1

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Types.h"
-#include "Constants.h"
+#include <mario/core/Types.h>
+#include <mario/core/Constants.h>
 #ifdef __EMSCRIPTEN__
 #include <SDL.h>
 #else

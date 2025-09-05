@@ -1,4 +1,4 @@
-#include "Animation.h"
+#include <mario/engine/Animation.h>
 
 Animation::Animation()
     : m_currentFrame(0)

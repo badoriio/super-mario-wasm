@@ -1,7 +1,7 @@
-#include "PhysicsWorld.h"
-#include "CollisionDetector.h"
-#include "../game/Level.h"
-#include "../core/Constants.h"
+#include <mario/physics/PhysicsWorld.h>
+#include <mario/physics/CollisionDetector.h>
+#include <mario/game/Level.h>
+#include <mario/core/Constants.h>
 #include <algorithm>
 #include <iostream>
 

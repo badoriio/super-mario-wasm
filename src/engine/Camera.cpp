@@ -1,5 +1,5 @@
-#include "Camera.h"
-#include "../core/Constants.h"
+#include <mario/engine/Camera.h>
+#include <mario/core/Constants.h>
 #include <algorithm>
 #include <cmath>
 #include <random>

@@ -1,5 +1,5 @@
-#include "ResourceManager.h"
-#include "Constants.h"
+#include <mario/core/ResourceManager.h>
+#include <mario/core/Constants.h>
 #include <iostream>
 
 ResourceManager* ResourceManager::s_instance = nullptr;

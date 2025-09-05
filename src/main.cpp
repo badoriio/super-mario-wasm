@@ -1,5 +1,5 @@
-#include "core/Engine.h"
-#include "game/Game.h"
+#include <mario/core/Engine.h>
+#include <mario/game/Game.h>
 #include <iostream>
 
 #ifdef __EMSCRIPTEN__

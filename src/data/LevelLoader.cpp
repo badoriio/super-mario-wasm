@@ -1,5 +1,5 @@
-#include "LevelLoader.h"
-#include "../core/Constants.h"
+#include <mario/data/LevelLoader.h>
+#include <mario/core/Constants.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>

@@ -1,5 +1,5 @@
-#include "AudioManager.h"
-#include "Constants.h"
+#include <mario/core/AudioManager.h>
+#include <mario/core/Constants.h>
 #include <iostream>
 
 AudioManager::AudioManager()

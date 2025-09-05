@@ -1,10 +1,10 @@
-#include "Engine.h"
-#include "ResourceManager.h"
-#include "AudioManager.h"
-#include "InputManager.h"
-#include "SaveManager.h"
-#include "../engine/Renderer.h"
-#include "../game/Game.h"
+#include <mario/core/Engine.h>
+#include <mario/core/ResourceManager.h>
+#include <mario/core/AudioManager.h>
+#include <mario/core/InputManager.h>
+#include <mario/core/SaveManager.h>
+#include <mario/engine/Renderer.h>
+#include <mario/game/Game.h>
 #include <iostream>
 
 

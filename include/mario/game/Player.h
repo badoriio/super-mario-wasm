@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../core/Types.h"
-#include "../engine/Animation.h"
-#include "../engine/SpriteSheet.h"
+#include <mario/core/Types.h>
+#include <mario/engine/Animation.h>
+#include <mario/engine/SpriteSheet.h>
 #ifdef __EMSCRIPTEN__
 #include <SDL.h>
 #else

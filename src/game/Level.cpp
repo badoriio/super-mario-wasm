@@ -1,10 +1,10 @@
-#include "Level.h"
-#include "../engine/Renderer.h"
-#include "../engine/Camera.h"
-#include "../physics/PhysicsWorld.h"
-#include "../core/ResourceManager.h"
-#include "../core/Constants.h"
-#include "../data/LevelLoader.h"
+#include <mario/game/Level.h>
+#include <mario/engine/Renderer.h>
+#include <mario/engine/Camera.h>
+#include <mario/physics/PhysicsWorld.h>
+#include <mario/core/ResourceManager.h>
+#include <mario/core/Constants.h>
+#include <mario/data/LevelLoader.h>
 #include <iostream>
 #include <cmath>
 #ifdef __EMSCRIPTEN__

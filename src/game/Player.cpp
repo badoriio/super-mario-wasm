@@ -1,10 +1,10 @@
-#include "Player.h"
-#include "../physics/PhysicsWorld.h"
-#include "../core/InputManager.h"
-#include "../core/AudioManager.h"
-#include "../core/ResourceManager.h"
-#include "../engine/Renderer.h"
-#include "../core/Constants.h"
+#include <mario/game/Player.h>
+#include <mario/physics/PhysicsWorld.h>
+#include <mario/core/InputManager.h>
+#include <mario/core/AudioManager.h>
+#include <mario/core/ResourceManager.h>
+#include <mario/engine/Renderer.h>
+#include <mario/core/Constants.h>
 #include <iostream>
 
 Player::Player(const Vector2& position)

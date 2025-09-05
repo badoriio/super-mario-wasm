@@ -1,7 +1,7 @@
-#include "UI.h"
-#include "Menu.h"
-#include "HUD.h"
-#include "../core/Engine.h"
+#include <mario/ui/UI.h>
+#include <mario/ui/Menu.h>
+#include <mario/ui/HUD.h>
+#include <mario/core/Engine.h>
 
 UI::UI()
     : m_engine(nullptr)

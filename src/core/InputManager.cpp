@@ -1,4 +1,4 @@
-#include "InputManager.h"
+#include <mario/core/InputManager.h>
 #include <iostream>
 
 InputManager::InputManager()

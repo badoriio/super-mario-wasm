@@ -1,6 +1,6 @@
-#include "Renderer.h"
-#include "Camera.h"
-#include "../core/Constants.h"
+#include <mario/engine/Renderer.h>
+#include <mario/engine/Camera.h>
+#include <mario/core/Constants.h>
 #include <algorithm>
 #include <iostream>
 #include <cmath>

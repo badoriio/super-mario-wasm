@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../core/Types.h"
-#include "../core/SaveManager.h"
+#include <mario/core/Types.h>
+#include <mario/core/SaveManager.h>
 #ifdef __EMSCRIPTEN__
 #include <SDL.h>
 #else

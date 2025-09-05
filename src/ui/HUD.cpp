@@ -1,10 +1,10 @@
-#include "HUD.h"
-#include "../core/Engine.h"
-#include "../core/ResourceManager.h"
-#include "../game/Player.h"
-#include "../game/Level.h"
-#include "../engine/Renderer.h"
-#include "../core/Constants.h"
+#include <mario/ui/HUD.h>
+#include <mario/core/Engine.h>
+#include <mario/core/ResourceManager.h>
+#include <mario/game/Player.h>
+#include <mario/game/Level.h>
+#include <mario/engine/Renderer.h>
+#include <mario/core/Constants.h>
 #include <sstream>
 
 HUD::HUD()

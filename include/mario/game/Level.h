@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../core/Types.h"
+#include <mario/core/Types.h>
 #include <vector>
 #include <string>
 #ifdef __EMSCRIPTEN__

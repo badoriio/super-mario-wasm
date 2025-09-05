@@ -1,9 +1,9 @@
-#include "Menu.h"
-#include "../core/Engine.h"
-#include "../core/InputManager.h"
-#include "../core/ResourceManager.h"
-#include "../engine/Renderer.h"
-#include "../core/Constants.h"
+#include <mario/ui/Menu.h>
+#include <mario/core/Engine.h>
+#include <mario/core/InputManager.h>
+#include <mario/core/ResourceManager.h>
+#include <mario/engine/Renderer.h>
+#include <mario/core/Constants.h>
 
 Menu::Menu()
     : m_engine(nullptr)

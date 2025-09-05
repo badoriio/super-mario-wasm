@@ -31,34 +31,34 @@ set(SOURCES
 
 # Header files
 set(HEADERS
-    src/core/Engine.h
-    src/core/ResourceManager.h
-    src/core/AudioManager.h
-    src/core/InputManager.h
-    src/core/SaveManager.h
-    src/core/Types.h
-    src/core/Constants.h
-    src/engine/Renderer.h
-    src/engine/Camera.h
-    src/engine/Animation.h
-    src/engine/SpriteSheet.h
-    src/physics/PhysicsWorld.h
-    src/physics/CollisionDetector.h
-    src/game/Game.h
-    src/game/Player.h
-    src/game/Level.h
-    src/ui/UI.h
-    src/ui/Menu.h
-    src/ui/HUD.h
-    src/data/LevelLoader.h
-    src/data/ConfigLoader.h
+    include/mario/core/Engine.h
+    include/mario/core/ResourceManager.h
+    include/mario/core/AudioManager.h
+    include/mario/core/InputManager.h
+    include/mario/core/SaveManager.h
+    include/mario/core/Types.h
+    include/mario/core/Constants.h
+    include/mario/engine/Renderer.h
+    include/mario/engine/Camera.h
+    include/mario/engine/Animation.h
+    include/mario/engine/SpriteSheet.h
+    include/mario/physics/PhysicsWorld.h
+    include/mario/physics/CollisionDetector.h
+    include/mario/game/Game.h
+    include/mario/game/Player.h
+    include/mario/game/Level.h
+    include/mario/ui/UI.h
+    include/mario/ui/Menu.h
+    include/mario/ui/HUD.h
+    include/mario/data/LevelLoader.h
+    include/mario/data/ConfigLoader.h
 )
 
 # Add executable
 add_executable(game ${SOURCES} ${HEADERS})
 
 # Include directories
-target_include_directories(game PRIVATE src)
+target_include_directories(game PRIVATE include)
 
 # Compiler-specific options
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
@@ -115,8 +115,8 @@ if(NOT GIT_HASH)
 endif()
 
 configure_file(
-    ${CMAKE_SOURCE_DIR}/src/core/Version.h.in
-    ${CMAKE_BINARY_DIR}/src/core/Version.h
+    ${CMAKE_SOURCE_DIR}/include/mario/core/Version.h.in
+    ${CMAKE_BINARY_DIR}/include/mario/core/Version.h
     @ONLY
 )
 

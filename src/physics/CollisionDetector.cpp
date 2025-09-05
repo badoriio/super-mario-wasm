@@ -1,4 +1,4 @@
-#include "CollisionDetector.h"
+#include <mario/physics/CollisionDetector.h>
 #include <cmath>
 #include <algorithm>
 

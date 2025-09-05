@@ -1,4 +1,4 @@
-#include "ConfigLoader.h"
+#include <mario/data/ConfigLoader.h>
 #include <fstream>
 #include <iostream>
 
